@@ -1,28 +1,30 @@
 class Task
-  attr_reader(:description)
+  attr_reader(:description, :list_id)
 
   def initialize(attributes)
     @description = attributes.fetch(:description)
+    @list_id = attributes.fetch(:list_id)
   end
 
-# Converts SQL database to Ruby Code
+# # Converts SQL database to Ruby Code
   def self.all
     returned_tasks = DB.exec("SELECT * FROM tasks;")
     tasks = []
     returned_tasks.each() do |task|
       description = task.fetch("description")
-      tasks.push(Task.new({:description => description}))
+      list_id = task.fetch("list_id").to_i() # The information comes out of the database as a string.
+      tasks.push(Task.new({:description => description, :list_id => list_id}))
     end
     tasks
   end
 
-# Sets two objects of the same class equal to one another for testing purposes
-  def ==(another_task)
-    self.description().==(another_task.description())
+# # Saves an object to our database table
+  def save
+    DB.exec("INSERT INTO tasks (description, list_id) VALUES ('#{@description}', #{@list_id});")
   end
 
-# Saves an object to our database table
-  def save
-    DB.exec("INSERT INTO tasks (description) VALUES ('#{@description}');")
+# # Sets two objects of the same class equal to one another for testing purposes
+  def ==(another_task)
+    self.description().==(another_task.description()).&(self.list_id().==(another_task.list_id()))
   end
 end
